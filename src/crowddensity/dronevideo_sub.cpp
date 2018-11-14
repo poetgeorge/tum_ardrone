@@ -1,3 +1,4 @@
+ //对视频（已转换格式）做人群密度检测，并指挥无人机（未完成）
 #include <ros/ros.h>
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
@@ -11,11 +12,11 @@
 using namespace std;
 using namespace cv;
 
-static int crowdNum = 0;
+static int crowdNum = 0; //人数
 static int compareNum = 0;
-static double manWidth = 0.0;
+static double manWidth = 0.0; //平均人体宽度
 static double compareWidth = 0.0;
-static CrowdLocation crowdCentre = CrowdLocation();
+static CrowdLocation crowdCentre = CrowdLocation(); //人群中心点
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
@@ -23,16 +24,12 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
   //cv::Mat myimg, myimg2;
   try
   {
-    //cv_ptr = cv_bridge::toCvShare(msg, "bgr8");
-    //myimg = cv_ptr->image;
-    //myimg2 = mydetector(myimg);
-    //imshow("result", cv_bridge::toCvShare(msg, "bgr8")->image);
+    //输出人群检测结果
     imshow("result", mydetector(cv_bridge::toCvShare(msg, "bgr8")->image).resultView);
 
     crowdNum = mydetector(cv_bridge::toCvShare(msg, "bgr8")->image).crowdNum;
     crowdCentre = mydetector(cv_bridge::toCvShare(msg, "bgr8")->image).crowdCentre;
 
-    //imshow("result", myimg);
     waitKey(100);   //100ms
   }
   catch (cv_bridge::Exception& e)
@@ -41,6 +38,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
   }
 }
 
+//指挥无人机
 void controlCallBack(const ros::TimerEvent&)
 {
   ROS_INFO("controlCallback triggered");
@@ -71,9 +69,14 @@ int main(int argc, char **argv)
   ros::NodeHandle nh1_, nh2_;
   cv::namedWindow("result");
   cv::startWindowThread();
+  
+  //发布人群密度检测结果
   image_transport::ImageTransport it_(nh1_);
   image_transport::Subscriber sub = it_.subscribe("/image_converter/output_video", 1, imageCallback);
+
+  //依人群检测结果，每隔5秒对无人机发送一次指令
   ros::Timer timer = nh2_.createTimer(ros::Duration(5.0), controlCallBack);
+
   ros::spin();
   cv::destroyWindow("result");
 }

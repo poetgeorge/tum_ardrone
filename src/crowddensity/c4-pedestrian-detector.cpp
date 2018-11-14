@@ -1,3 +1,5 @@
+//行人检测算法
+
 #include "c4-pedestrian-detector.h"
 #include <iostream>
 #include <fstream>
@@ -1078,6 +1080,7 @@ int DetectHuman(const char* filename,DetectionScanner& ds)
     return (int)results.size();
 }
 
+
 CrowdLocation::CrowdLocation(){
     xloc = 0;
     yloc = 0;
@@ -1118,7 +1121,7 @@ CrowdLocation getCrowdCentre(std::vector<CRect> crowd, CrowdLocation imageCentre
     return crowdCentre;
 }
 
-// End of Detection functions
+// 检测主函数
 // ---------------------------------------------------------------------
 //cv::Mat mydetector(cv::Mat myimg)
 DetecResult mydetector(cv::Mat myimg){

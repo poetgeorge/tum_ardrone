@@ -1,3 +1,5 @@
+//将ROS图像消息转换为OPENCV可用的图像格式
+
 #include <ros/ros.h>
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
@@ -21,6 +23,7 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
   cv_bridge::CvImagePtr cv_ptr;
   try
   {
+   //转换图像格式
 	 cv_ptr = cv_bridge::toCvCopy(msg, "bgr8");
   }
   catch (cv_bridge::Exception& e)
@@ -43,7 +46,7 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 
 
   
-  // Output modified video stream
+  //发布转换后的视频
   sensor_msgs::ImagePtr msg_pub;
   msg_pub = cv_bridge::CvImage(std_msgs::Header(), "bgr8", myimg).toImageMsg();
   image_pub_.publish(msg_pub);
@@ -57,7 +60,7 @@ int main(int argc, char** argv)
   ros::NodeHandle nh_;
   image_transport::ImageTransport it_(nh_);
 
-  // Subscribe to input video feed and publish output video feed
+  //订阅原始视频，发布转换后的视频
   image_sub_ = it_.subscribe("/ardrone/image_raw", 1, imageCb);
   image_pub_ = it_.advertise("/image_converter/output_video", 1);
 

@@ -28,6 +28,7 @@ class CrowdLocation{
 // CrowdLocation::CrowdLocation(double x, double y){
 // }
 
+//人群检测结果类
 class DetecResult{
     public:
     CrowdLocation crowdCentre; //人群中心点
