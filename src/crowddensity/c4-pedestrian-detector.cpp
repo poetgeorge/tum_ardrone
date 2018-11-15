@@ -655,7 +655,7 @@ void ComputeCT(IntImage<double>& original,IntImage<int>& ct)
 double UseSVM_CD_FastEvaluationStructure(const char* modelfile,const int m,Array2dC<double>& result)
 {
     //std::ifstream in(modelfile);
-    std::ifstream in("/home/zhou/ardrone_ws/src/tum_ardrone/src/crowddensity/combined.txt.model");
+    std::ifstream in("/home/zhou/drone_ws/src/tum_ardrone/src/crowddensity/combined.txt.model");
     std::cout<<modelfile<<std::endl;
     if(in.good()==false)
     {
@@ -694,7 +694,7 @@ double UseSVM_CD_FastEvaluationStructure(const char* modelfile, const int m, con
 {
 
     //std::ifstream fs(modelfile, std::fstream::binary);
-    std::ifstream fs("/home/zhou/ardrone_ws/src/tum_ardrone/src/crowddensity/combined.txt.model_", std::fstream::binary);
+    std::ifstream fs("/home/zhou/drone_ws/src/tum_ardrone/src/crowddensity/combined.txt.model_", std::fstream::binary);
 	if( !fs.is_open() )
 	{
 		std::cout << "SVM model " << modelfile << " can not be loaded." << std::endl;

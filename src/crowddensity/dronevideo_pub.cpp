@@ -35,18 +35,6 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
   Mat myimg, myimg2;
   myimg = cv_ptr->image;
 
-  //myimg2 = mydetector(myimg);
-
-  // Update GUI Window
-  //imshow(OPENCV_WINDOW, myimg);
-  //waitKey(3);
-
-  //imshow(OPENCV_WINDOW2, myimg2);
-  //waitKey(3);
-
-
-  
-  //发布转换后的视频
   sensor_msgs::ImagePtr msg_pub;
   msg_pub = cv_bridge::CvImage(std_msgs::Header(), "bgr8", myimg).toImageMsg();
   image_pub_.publish(msg_pub);
@@ -64,12 +52,7 @@ int main(int argc, char** argv)
   image_sub_ = it_.subscribe("/ardrone/image_raw", 1, imageCb);
   image_pub_ = it_.advertise("/image_converter/output_video", 1);
 
-  //namedWindow(OPENCV_WINDOW);
-  //namedWindow(OPENCV_WINDOW2);
-	
   ros::spin();
   
-  //destroyWindow(OPENCV_WINDOW);
-  //destroyAllWindows();
   return 0;
 }

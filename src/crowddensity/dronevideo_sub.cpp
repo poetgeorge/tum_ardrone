@@ -24,11 +24,18 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
   //cv::Mat myimg, myimg2;
   try
   {
+    cv_bridge::CvImagePtr cv_ptr;
+    cv_ptr = cv_bridge::toCvCopy(msg, "bgr8");
+    Mat myimg;
+    myimg = cv_ptr->image;
     //输出人群检测结果
-    imshow("result", mydetector(cv_bridge::toCvShare(msg, "bgr8")->image).resultView);
+    //imshow("result", mydetector(cv_bridge::toCvShare(msg, "bgr8")->image).resultView);
+    imshow("result", mydetector(myimg).resultView);
 
-    crowdNum = mydetector(cv_bridge::toCvShare(msg, "bgr8")->image).crowdNum;
-    crowdCentre = mydetector(cv_bridge::toCvShare(msg, "bgr8")->image).crowdCentre;
+    //crowdNum = mydetector(cv_bridge::toCvShare(msg, "bgr8")->image).crowdNum;
+    //crowdCentre = mydetector(cv_bridge::toCvShare(msg, "bgr8")->image).crowdCentre;
+    crowdNum = mydetector(myimg).crowdNum;
+    crowdCentre = mydetector(myimg).crowdCentre;
 
     waitKey(100);   //100ms
   }
@@ -72,7 +79,9 @@ int main(int argc, char **argv)
   
   //发布人群密度检测结果
   image_transport::ImageTransport it_(nh1_);
-  image_transport::Subscriber sub = it_.subscribe("/image_converter/output_video", 1, imageCallback);
+  //image_transport::Subscriber sub = it_.subscribe("/image_converter/output_video", 1, imageCallback);
+  image_transport::Subscriber sub = it_.subscribe("/ardrone/image_raw", 1, imageCallback);
+
 
   //依人群检测结果，每隔5秒对无人机发送一次指令
   ros::Timer timer = nh2_.createTimer(ros::Duration(5.0), controlCallBack);
