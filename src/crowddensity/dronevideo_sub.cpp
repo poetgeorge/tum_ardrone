@@ -8,6 +8,7 @@
 #include "std_msgs/String.h"
 
 #include "c4-pedestrian-detector.h"
+#include "tum_ardrone/detecresult.h"
 
 using namespace std;
 using namespace cv;
@@ -29,8 +30,8 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
     Mat myimg;
     myimg = cv_ptr->image;
     //输出人群检测结果
-    //imshow("result", mydetector(cv_bridge::toCvShare(msg, "bgr8")->image).resultView);
-    imshow("result", mydetector(myimg).resultView);
+    imshow("result", mydetector(cv_bridge::toCvShare(msg, "bgr8")->image).resultView);
+    //imshow("result", mydetector(myimg).resultView);
 
     //crowdNum = mydetector(cv_bridge::toCvShare(msg, "bgr8")->image).crowdNum;
     //crowdCentre = mydetector(cv_bridge::toCvShare(msg, "bgr8")->image).crowdCentre;
@@ -59,7 +60,6 @@ void controlCallBack(const ros::TimerEvent&)
   //       std::stringstream ss_right;
   //       ss_right << "c goto 0.5 0 0 0";
   //       msg_right.data = ss_right.str();
-  
   // if(crowdCentre.xloc > 0.2){
   //   control_pub.publish(msg_right);
   // }
@@ -84,8 +84,23 @@ int main(int argc, char **argv)
 
 
   //依人群检测结果，每隔5秒对无人机发送一次指令
-  ros::Timer timer = nh2_.createTimer(ros::Duration(5.0), controlCallBack);
+  //ros::Timer timer = nh2_.createTimer(ros::Duration(5.0), controlCallBack);
+
+  //发布人群检测结果
+  ros::Publisher control_pub  = nh2_.advertise<tum_ardrone::detecresult>("detecresult", 1000);
+  //ros::Rate loop_rate(10);
+  //while(ros::ok()){
+    tum_ardrone::detecresult msg1;
+    msg1.crowdNum = crowdNum;
+    msg1.centrex = crowdCentre.xloc;
+    msg1.centrey = crowdCentre.yloc;
+    msg1.manWidth = manWidth;
+    control_pub.publish(msg1);
+    //loop_rate.sleep();
+  //}
 
   ros::spin();
   cv::destroyWindow("result");
+  
+  return 0;
 }

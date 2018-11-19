@@ -1,0 +1,4 @@
+<launch>
+ <node name="mycontroller" pkg="tum_ardrone" type="mycontroller">
+  </node>
+</launch>

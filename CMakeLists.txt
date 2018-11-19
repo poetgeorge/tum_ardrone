@@ -44,7 +44,7 @@ generate_dynamic_reconfigure_options(
 ################################################
 
 ## Generate messages in the 'msg' folder
-add_message_files(FILES filter_state.msg)
+add_message_files(FILES filter_state.msg detecresult.msg)
 
 ## Generate services in the 'srv' folder
 add_service_files(
@@ -222,10 +222,15 @@ add_library(ped_detec SHARED src/crowddensity/c4-pedestrian-detector.cpp)
 add_executable(dronevideo_pub src/crowddensity/dronevideo_pub.cpp)
 target_link_libraries(dronevideo_pub ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 target_link_libraries(dronevideo_pub ped_detec)
-add_dependencies(dronevideo_pub dronevideo_generate_messages_cpp)
+add_dependencies(dronevideo_pub tum_ardrone_generate_messages_cpp)
 
 add_executable(dronevideo_sub src/crowddensity/dronevideo_sub.cpp)
 target_link_libraries(dronevideo_sub ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 target_link_libraries(dronevideo_sub ped_detec)
-add_dependencies(dronevideo_sub dronevideo_generate_messages_cpp)
+add_dependencies(dronevideo_sub tum_ardrone_generate_messages_cpp)
+
+add_executable(mycontroller src/crowddensity/dronecontrol.cpp)
+target_link_libraries(mycontroller ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
+target_link_libraries(mycontroller ped_detec)
+add_dependencies(mycontroller tum_ardrone_generate_messages_cpp)
 
