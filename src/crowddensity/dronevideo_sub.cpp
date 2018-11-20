@@ -13,11 +13,6 @@
 using namespace std;
 using namespace cv;
 
-static int crowdNum = 0; //人数
-static int compareNum = 0;
-static double manWidth = 0.0; //平均人体宽度
-static double compareWidth = 0.0;
-static CrowdLocation crowdCentre = CrowdLocation(); //人群中心点
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
@@ -30,13 +25,23 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
     Mat myimg;
     myimg = cv_ptr->image;
     //输出人群检测结果
-    imshow("result", mydetector(cv_bridge::toCvShare(msg, "bgr8")->image).resultView);
-    //imshow("result", mydetector(myimg).resultView);
+    DetecResult detecResult = mydetector(cv_bridge::toCvShare(msg, "bgr8")->image);
+    //imshow("result", mydetector(cv_bridge::toCvShare(msg, "bgr8")->image).resultView);
+    imshow("result", detecResult.resultView);
 
-    //crowdNum = mydetector(cv_bridge::toCvShare(msg, "bgr8")->image).crowdNum;
-    //crowdCentre = mydetector(cv_bridge::toCvShare(msg, "bgr8")->image).crowdCentre;
-    crowdNum = mydetector(myimg).crowdNum;
-    crowdCentre = mydetector(myimg).crowdCentre;
+    //发布人群检测结果
+    ros::NodeHandle n;
+    ros::Publisher control_pub  = n.advertise<tum_ardrone::detecresult>("/tum_ardrone/detecresult", 1);
+    tum_ardrone::detecresult msg1;
+    msg1.crowdNum = detecResult.crowdNum;
+    msg1.centrex = detecResult.crowdCentre.xloc;
+    msg1.centrey = detecResult.crowdCentre.yloc;
+    msg1.manWidth = detecResult.manWidth;
+    std::cout<<msg1.crowdNum<<std::endl;
+    std::cout<<msg1.centrex<<std::endl;
+    std::cout<<msg1.centrey<<std::endl;
+    std::cout<<msg1.manWidth<<std::endl;
+    control_pub.publish(msg1);
 
     waitKey(100);   //100ms
   }
@@ -77,27 +82,14 @@ int main(int argc, char **argv)
   cv::namedWindow("result");
   cv::startWindowThread();
   
-  //发布人群密度检测结果
+  //订阅视频流数据
   image_transport::ImageTransport it_(nh1_);
-  //image_transport::Subscriber sub = it_.subscribe("/image_converter/output_video", 1, imageCallback);
   image_transport::Subscriber sub = it_.subscribe("/ardrone/image_raw", 1, imageCallback);
 
 
   //依人群检测结果，每隔5秒对无人机发送一次指令
   //ros::Timer timer = nh2_.createTimer(ros::Duration(5.0), controlCallBack);
 
-  //发布人群检测结果
-  ros::Publisher control_pub  = nh2_.advertise<tum_ardrone::detecresult>("detecresult", 1000);
-  //ros::Rate loop_rate(10);
-  //while(ros::ok()){
-    tum_ardrone::detecresult msg1;
-    msg1.crowdNum = crowdNum;
-    msg1.centrex = crowdCentre.xloc;
-    msg1.centrey = crowdCentre.yloc;
-    msg1.manWidth = manWidth;
-    control_pub.publish(msg1);
-    //loop_rate.sleep();
-  //}
 
   ros::spin();
   cv::destroyWindow("result");

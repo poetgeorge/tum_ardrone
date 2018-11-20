@@ -1,4 +1,7 @@
 #include <ros/ros.h>
+#include <iostream>
+#include <string>
+#include <cmath>
 #include "std_msgs/String.h"
 
 #include "c4-pedestrian-detector.h"
@@ -21,13 +24,21 @@ void controlCB(const ros::TimerEvent&){
           std::stringstream ss_right;
           ss_right << "c goto 1 0 0 0";
           msg_right.data = ss_right.str();
+    if(crowdNum>0){
     if(crowdCentre.xloc > 0){
+        std::cout<<"Fly right! Aha!"<<std::endl;
         ROS_INFO("Fly right! Aha!");
         control_pub.publish(msg_right);
     }
     else if(crowdCentre.xloc < 0){
-        ROS_INFO("Fly lift! Aha!");
+        std::cout<<"Fly left! Whoh!"<<std::endl;
+        ROS_INFO("Fly left! Whoh!");
         control_pub.publish(msg_left);
+    }
+    }
+    else{
+        std::cout<<"NONONONONO,No human detected!"<<std::endl;
+        ROS_INFO("NONONONONO,No human detected!");
     }
     compareWidth = manWidth;
     compareNum = crowdNum;
@@ -40,15 +51,18 @@ void mainCB(const tum_ardrone::detecresult::ConstPtr& msg){
     crowdCentre = CrowdLocation(msg->centrex, msg->centrey);
     manWidth = msg->manWidth;
 
-    ros::NodeHandle nc;
-    //依人群检测结果，每隔5秒对无人机发送一次指令
-    ros::Timer timer = nc.createTimer(ros::Duration(5.0), controlCB);
+    // ros::NodeHandle nc;
+    // //依人群检测结果，每隔5秒对无人机发送一次指令
+    // ros::Timer timer = nc.createTimer(ros::Duration(0.2), controlCB);
 }
 
 int main(int argc, char** argv){
     ros::init(argc, argv, "mycontroller");
     ros::NodeHandle n;
-    ros::Subscriber sub = n.subscribe("detecresult", 1000, mainCB);
+    ros::Subscriber sub = n.subscribe("/tum_ardrone/detecresult", 1000, mainCB);
+    ros::NodeHandle nc;
+    //依人群检测结果，每隔5秒对无人机发送一次指令
+    ros::Timer timer = nc.createTimer(ros::Duration(5.0), controlCB);
     ros::spin();
     return 0;
 }

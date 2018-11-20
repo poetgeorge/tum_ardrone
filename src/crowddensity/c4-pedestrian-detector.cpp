@@ -1110,6 +1110,7 @@ CrowdLocation getCrowdCentre(std::vector<CRect> crowd, CrowdLocation imageCentre
     double tmpx = 0.0;
     double tmpy = 0.0;
     //CrowdLocation *realcrowd = new CrowdLocation[numc];
+    if(numc>0){
     for(i=0;i<numc;i++){
         tmpx = tmpx + 0.5 * (crowd[i].left + crowd[i].right);
         tmpy = tmpy + 0.5 * (crowd[i].top + crowd[i].bottom);
@@ -1118,6 +1119,11 @@ CrowdLocation getCrowdCentre(std::vector<CRect> crowd, CrowdLocation imageCentre
     tmpy = tmpy/numc;
     crowdCentre.xloc = (tmpx - imageCentre.xloc)/imageCentre.xloc;
     crowdCentre.yloc = -(tmpy - imageCentre.yloc)/imageCentre.yloc;
+    }
+    else{
+        crowdCentre.xloc = 0.0;
+        crowdCentre.yloc = 0.0;
+    }
     return crowdCentre;
 }
 
@@ -1201,10 +1207,12 @@ DetecResult mydetector(cv::Mat myimg){
     CrowdLocation crowdCentre = getCrowdCentre(results, imageCentre);
     int crowdNum = results.size();
     double manWidth = 0.0;
+    if(crowdNum>0){
     for(int i=0;i<results.size();i++){
         manWidth = manWidth + (results[i].right - results[i].left);
     }
     manWidth = manWidth/results.size();
+    }
 
     DetecResult detecResult(crowdCentre, crowdNum, src, manWidth);
     std::cout<<"ohyeah4"<<std::endl;
