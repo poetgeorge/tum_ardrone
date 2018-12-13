@@ -1,4 +1,6 @@
 <launch>
  <node name="mycontroller" pkg="tum_ardrone" type="mycontroller">
   </node>
+ <!-- <node name="my_takeoff" pkg="tum_ardrone" type="my_takeoff">
+  </node> -->
 </launch>

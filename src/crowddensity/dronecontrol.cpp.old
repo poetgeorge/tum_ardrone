@@ -1,0 +1,107 @@
+#include <ros/ros.h>
+#include <iostream>
+#include <string>
+#include <cmath>
+#include <unistd.h>
+#include "cvd/thread.h"
+#include "ros/callback_queue.h"
+#include "std_msgs/String.h"
+#include "geometry_msgs/Twist.h"
+//#include "RosThread.h"
+
+#include "c4-pedestrian-detector.h"
+#include "tum_ardrone/detecresult.h"
+//#include "dronecontrol.h"
+
+static int crowdNum = 0; //人数
+static int compareNum = 0;
+static double manWidth = 0.0; //平均人体宽度
+static double compareWidth = 0.0;
+static CrowdLocation crowdCentre = CrowdLocation(); //人群中心点
+
+
+
+void controlCB(const ros::TimerEvent&){
+    //RosThread* rosThread;
+    //pthread_mutex_t send_CS = PTHREAD_MUTEX_INITIALIZER;
+    ros::NodeHandle n;
+    ros::Publisher control_pub = n.advertise<std_msgs::String>(n.resolveName("tum_ardrone/com"), 50);
+    //ros::Publisher control_pub2 = n2.advertise<geometry_msgs::Twist>("cmd_vel", 10);
+    std_msgs::String msg_left;
+        //   std::stringstream ss_left;
+        //   ss_left << "c goto -1 0 0 0";
+        //   msg_left.data = ss_left.str();
+        std::string ss_left = "c goto -1 0 0 0";
+        msg_left.data = ss_left.c_str();
+    std_msgs::String msg_right;
+        //   std::stringstream ss_right;
+        //   ss_right << "c goto 1 0 0 0";
+        //   msg_right.data = ss_right.str();
+        std::string ss_right = "c goto 1 0 0 0";
+        msg_right.data = ss_right.c_str();
+    // geometry_msgs::Twist goleft;
+    //     goleft.linear.x = -1.0;
+    //     goleft.linear.y = 0.0;
+    //     goleft.linear.z = 0.0;
+    //     goleft.angular.x = 0.0;
+    //     goleft.angular.y = 0.0;
+    //     goleft.angular.z = 0.0;
+    // geometry_msgs::Twist goright;
+    //     goright.linear.x = 1.0;
+    //     goright.linear.y = 0.0;
+    //     goright.linear.z = 0.0;
+    //     goright.angular.x = 0.0;
+    //     goright.angular.y = 0.0;
+    //     goright.angular.z = 0.0;
+    std::cout<<crowdNum<<std::endl;
+    if(crowdNum>0){
+    if(crowdCentre.xloc > 0.0){
+        std::cout<<"Fly right! Aha!"<<std::endl;
+        //ROS_INFO("Fly right! Aha!");
+        //pthread_mutex_lock(&send_CS);
+        control_pub.publish(msg_right);
+        //pthread_mutex_unlock(&send_CS);
+        //control_pub2.publish(goright);
+    }
+    else if(crowdCentre.xloc < 0.0){
+        std::cout<<"Fly left! Whoh!"<<std::endl;
+        //ROS_INFO("Fly left! Whoh!");
+        //pthread_mutex_lock(&send_CS);
+        control_pub.publish(msg_left);
+        //pthread_mutex_unlock(&send_CS);
+        //control_pub2.publish(goleft);
+    }
+    }
+    else{
+        std::cout<<"NONONONONO,No human detected!"<<std::endl;
+        //ROS_INFO("NONONONONO,No human detected!");
+    }
+    compareWidth = manWidth;
+    compareNum = crowdNum;
+}
+
+
+void mainCB(const tum_ardrone::detecresult::ConstPtr& msg){
+    //ROS_INFO("controlCallback triggered");
+    std::cout<<"triggered"<<std::endl;
+    crowdNum = msg->crowdNum;
+    crowdCentre = CrowdLocation(msg->centrex, msg->centrey);
+    manWidth = msg->manWidth;
+
+    // ros::NodeHandle nc;
+    // //依人群检测结果，每隔5秒对无人机发送一次指令
+    // ros::Timer timer = nc.createTimer(ros::Duration(0.2), controlCB);
+}
+
+int main(int argc, char** argv){
+    ros::init(argc, argv, "mycontroller");
+    ros::NodeHandle n1;
+     std::cout<<"ABC"<<std::endl;
+    ros::Subscriber sub = n1.subscribe("detecresult", 50, mainCB);
+    std::cout<<"ABC1"<<std::endl;
+    ros::NodeHandle nc;
+    //依人群检测结果，每隔5秒对无人机发送一次指令
+    ros::Timer timer = nc.createTimer(ros::Duration(5.0), controlCB);
+    ros::spin();
+    return 0;
+}

@@ -219,18 +219,27 @@ add_dependencies(drone_gui thirdparty ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gen
 
 add_library(ped_detec SHARED src/crowddensity/c4-pedestrian-detector.cpp)
 
-add_executable(dronevideo_pub src/crowddensity/dronevideo_pub.cpp)
-target_link_libraries(dronevideo_pub ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
-target_link_libraries(dronevideo_pub ped_detec)
-add_dependencies(dronevideo_pub tum_ardrone_generate_messages_cpp)
+# add_library(rosthread SHARED src/UINode/RosThread.cpp)
+# target_link_libraries(rosthread drone_gui cvd &{catkin_LIBRARIES})
 
-add_executable(dronevideo_sub src/crowddensity/dronevideo_sub.cpp)
+# add_executable(dronevideo_pub src/crowddensity/dronevideo_pub.cpp)
+# target_link_libraries(dronevideo_pub ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
+# target_link_libraries(dronevideo_pub ped_detec)
+# add_dependencies(dronevideo_pub tum_ardrone_generate_messages_cpp)
+
+add_executable(dronevideo_sub src/crowddensity/drone_sub.cpp)
 target_link_libraries(dronevideo_sub ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 target_link_libraries(dronevideo_sub ped_detec)
 add_dependencies(dronevideo_sub tum_ardrone_generate_messages_cpp)
 
-add_executable(mycontroller src/crowddensity/dronecontrol.cpp)
+add_executable(mycontroller src/crowddensity/arcontrol.cpp)
 target_link_libraries(mycontroller ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 target_link_libraries(mycontroller ped_detec)
 add_dependencies(mycontroller tum_ardrone_generate_messages_cpp)
+
+add_executable(my_takeoff src/crowddensity/takeoff_init.cpp)
+target_link_libraries(my_takeoff ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
+target_link_libraries(my_takeoff ped_detec)
+add_dependencies(my_takeoff tum_ardrone_generate_messages_cpp)
+
 

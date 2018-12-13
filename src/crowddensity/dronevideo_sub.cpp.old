@@ -10,9 +10,11 @@
 #include "c4-pedestrian-detector.h"
 #include "tum_ardrone/detecresult.h"
 
-using namespace std;
+//using namespace std;
 using namespace cv;
 
+//ros::init(argc, argv, "dronevideo_sub");
+//ros::NodeHandle nh1_;
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
@@ -30,8 +32,8 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
     imshow("result", detecResult.resultView);
 
     //发布人群检测结果
-    ros::NodeHandle n;
-    ros::Publisher control_pub  = n.advertise<tum_ardrone::detecresult>("/tum_ardrone/detecresult", 1);
+    //ros::NodeHandle n;
+    ros::Publisher control_pub  = nh1_.advertise<tum_ardrone::detecresult>("detecresult", 50);
     tum_ardrone::detecresult msg1;
     msg1.crowdNum = detecResult.crowdNum;
     msg1.centrex = detecResult.crowdCentre.xloc;
@@ -43,7 +45,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
     std::cout<<msg1.manWidth<<std::endl;
     control_pub.publish(msg1);
 
-    waitKey(100);   //100ms
+    waitKey(300);   //300ms
   }
   catch (cv_bridge::Exception& e)
   {
@@ -55,36 +57,18 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 void controlCallBack(const ros::TimerEvent&)
 {
   ROS_INFO("controlCallback triggered");
-  // ros::NodeHandle n;
-  // ros::Publisher control_pub = n.advertise<std_msgs::String>("/tum_ardrone/com", 1000);
-  // std_msgs::String msg_left;
-  //       std::stringstream ss_left;
-  //       ss_left << "c goto -0.5 0 0 0";
-  //       msg_left.data = ss_left.str();
-  // std_msgs::String msg_right;
-  //       std::stringstream ss_right;
-  //       ss_right << "c goto 0.5 0 0 0";
-  //       msg_right.data = ss_right.str();
-  // if(crowdCentre.xloc > 0.2){
-  //   control_pub.publish(msg_right);
-  // }
-  // else if(crowdCentre.xloc < -0.2){
-  //   control_pub.publish(msg_left);
-  // }
-  // compareWidth = manWidth;
-  // compareNum = crowdNum;
 }
 
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "dronevideo_sub");
-  ros::NodeHandle nh1_, nh2_;
+  ros::NodeHandle nh1_;
   cv::namedWindow("result");
   cv::startWindowThread();
   
   //订阅视频流数据
   image_transport::ImageTransport it_(nh1_);
-  image_transport::Subscriber sub = it_.subscribe("/ardrone/image_raw", 1, imageCallback);
+  image_transport::Subscriber sub = it_.subscribe("/ardrone/image_raw", 50, imageCallback);
 
 
   //依人群检测结果，每隔5秒对无人机发送一次指令

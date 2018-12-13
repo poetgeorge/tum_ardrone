@@ -1209,9 +1209,11 @@ DetecResult mydetector(cv::Mat myimg){
     double manWidth = 0.0;
     if(crowdNum>0){
     for(int i=0;i<results.size();i++){
-        manWidth = manWidth + (results[i].right - results[i].left);
+        //manWidth = manWidth + (results[i].right - results[i].left);
+        if((results[i].right - results[i].left) > manWidth)
+        manWidth = results[i].right - results[i].left;
     }
-    manWidth = manWidth/results.size();
+    //manWidth = manWidth/results.size();
     }
 
     DetecResult detecResult(crowdCentre, crowdNum, src, manWidth);
