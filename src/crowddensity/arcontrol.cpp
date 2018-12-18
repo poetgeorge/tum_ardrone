@@ -7,6 +7,8 @@
 #include "ros/callback_queue.h"
 #include "std_msgs/String.h"
 #include "geometry_msgs/Twist.h"
+//#include <linux/delay.h>
+#include <sys/time.h>
 
 #include "c4-pedestrian-detector.h"
 #include "tum_ardrone/detecresult.h"
@@ -16,6 +18,11 @@ static int compareNum = 0;
 static double manWidth = 0.0; //最大人体宽度
 static double compareWidth = 0.0;
 static CrowdLocation crowdCentre = CrowdLocation(); //人群中心点
+
+// struct timeval{
+//     long tv_sec;
+//     long tv_usec;
+// };
 
 class Sub_Pub_Timer{
     private:
@@ -27,7 +34,7 @@ class Sub_Pub_Timer{
     Sub_Pub_Timer(){
         pub_ = n_.advertise<std_msgs::String>(n_.resolveName("tum_ardrone/com"), 50);
         sub_ = n_.subscribe(n_.resolveName("/detecresult"), 50, &Sub_Pub_Timer::subCB, this);
-        timer_ = n_.createTimer(ros::Duration(3.0), &Sub_Pub_Timer::timerCB, this);
+        timer_ = n_.createTimer(ros::Duration(2.0), &Sub_Pub_Timer::timerCB, this);
     }
     void subCB(const tum_ardrone::detecresult::ConstPtr& msg){
         ROS_INFO("controlCallback triggered");
@@ -37,6 +44,8 @@ class Sub_Pub_Timer{
         manWidth = msg->manWidth;
     }
     void timerCB(const ros::TimerEvent&){
+        const int N = 500000000;
+        int i=0,j=0;
         pthread_mutex_t send_CS = PTHREAD_MUTEX_INITIALIZER;
         double dist_lr = 2.5 * crowdCentre.xloc; //左或右平移距离
         if(dist_lr >= 2.0){
@@ -48,7 +57,7 @@ class Sub_Pub_Timer{
         std::stringstream ss_lr;
         ss_lr<<dist_lr;
         std::string strdist_lr = ss_lr.str();
-        std::string cmd_lr = "c goto " + strdist_lr + " 0 0 0"; //向左或右飞行
+        std::string cmd_lr = "c moveBy " + strdist_lr + " 0 0 0"; //向左或右飞行
         std::string cmd_ref = "c setReference 0 0 0 0";
         std_msgs::String msg_lr;
         std_msgs::String msg_ref;
@@ -95,27 +104,37 @@ class Sub_Pub_Timer{
             // else{
                 ROS_INFO("fly left_right %f", dist_lr);
                 //printf("fly left_rgiht %f", dist_lr);
-                //pthread_mutex_lock(&send_CS);
-                pub_.publish(msgrs);  //按人群中心点比例控制飞机左或右平飞
+                pthread_mutex_lock(&send_CS);
+                // struct timeval t1, t2;
+                // double t3;
+                // gettimeofday(&t1, NULL);
+                // pub_.publish(msgrs);  //按人群中心点比例控制飞机左或右平飞
+                // gettimeofday(&t2, NULL);
+                // t3 = 1000000 * (t2.tv_sec - t1.tv_sec) + (t2.tv_usec - t1.tv_usec);
+                // printf("reset time %f\n", t3);
+                // //mdelay(500);
+                // for(i=0;i<N;i++){
+                //     j = i;
+                // }
                 // pthread_mutex_unlock(&send_CS);
                 // pthread_mutex_lock(&send_CS);
                 pub_.publish(msg_lr);
                 ROS_INFO("fly good");
                 // for(int i=0;i<5000;i++){}
                 // pub_.publish(msgrs);
-                //pthread_mutex_unlock(&send_CS);
+                pthread_mutex_unlock(&send_CS);
             //}
         }
         //未检测到人
         else{
             ROS_INFO("NONONONONO,No human detected!");
-            std::string cmd_scan = "c goto 0 0 0 15";
+            std::string cmd_scan = "c moveBy 0 0 0 15";
             std_msgs::String msg_scan;
             msg_scan.data = cmd_scan.c_str();
-            // pthread_mutex_lock(&send_CS);
-            // pub_.publish(msg_scan); //飞机向右转15度继续监测
-            // ROS_INFO("Scanning......");
-            // pthread_mutex_unlock(&send_CS);
+            pthread_mutex_lock(&send_CS);
+            pub_.publish(msg_scan); //飞机向右转15度继续监测
+            ROS_INFO("Scanning......");
+            pthread_mutex_unlock(&send_CS);
             //std::cout<<"NONONONONO,No human detected!"<<std::endl;
             
         }
